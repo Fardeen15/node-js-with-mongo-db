@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <title>node js Todo</title>
+    <style>
+        #updtsbmt {
+            display: none;
+        }
+    </style>
+</head>
+
+<body onload="getdata()">
+    <div class="alert alert-info" id="mainDiv">
+        <div class="shadow-lg p-3 mb-5 bg-white rounded" id="formDiv">
+            <h1>Form</h1>
+            <form>
+                First Name: <input type="text" class="form-control" id="first_name" name="first_name"> <br>
+                Last Name: <input type="text" class="form-control" id="last_name" name="last_name"> <br>
+                <button onclick="getdata()" id="btnsbmt" class="btn btn-danger btn-lg btn-block"
+                    formaction="http://localhost:8080/index.html" formmethod="POST" type="submit">submit</button> <br>
+                <button onclick="update()" id="updtsbmt" class="btn btn-info btn-lg btn-block"
+                    formaction="http://localhost:8080/index.html" type="submit">update</button>
+                <br>
+            </form>
+        </div>
+        <div class="shadow-lg p-3 mb-5 bg-white rounded" id="tablediv">
+
+            <h1>list</h1>
+            <!-- <button onclick="data()">viewlist</button> -->
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>id</th>
+                        <th>First name</th>
+                        <th>Last name</th>
+                        <th colspan="2"><input type="text" placeholder="Search" class="form-control" id="filter"
+                                name="first_name"></th>
+
+                    </tr>
+                </thead>
+                <tbody id="ul">
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+<script>
+    var val = []
+    function getdata(data) {
+        if (!data) {
+
+            document.getElementById('ul').innerHTML = ""
+            fetch("http://localhost:8080/index2").then((res) => {
+                console.log(res)
+                return res.json()
+
+            }).then((jsonData) => {
+                val = jsonData
+                if (val.length) {
+                    for (var i = 0; i < val.length; i++) {
+                        document.getElementById('ul').innerHTML += `
+                            <tr> 
+                                <td>${val[i]._id}</td>
+                                <td>${val[i].firstname}</td>
+                                <td>${val[i].lastname}</td>
+                                <td><button class="btn btn-outline-danger" onclick="del(${i})" >delete</button></td>
+                                <td><button class="btn btn-outline-info" onclick="edit(${i})"">edit</button></td>
+                                </tr>`
+
+                    }
+                    document.getElementById('first_name').value = ""
+                    document.getElementById('last_name').value = ""
+                }
+            })
+                .catch((err) => { console.log(err) })
+        } else {
+            console.log(data)
+            document.getElementById('ul').innerHTML = ""
+            fetch(`http://localhost:8080/index2?filter=${data}`).then((res) => {
+                console.log(res)
+                return res.json()
+
+            }).then((jsonData) => {
+                val = jsonData
+                if (val.length) {
+                    for (var i = 0; i < val.length; i++) {
+                        document.getElementById('ul').innerHTML += `
+                            <tr> 
+                                <td>${val[i]._id}</td>
+                                <td>${val[i].firstname}</td>
+                                <td>${val[i].lastname}</td>
+                                <td><button class="btn btn-outline-danger" onclick="del(${i})" >delete</button></td>
+                                <td><button class="btn btn-outline-info" onclick="edit(${i})"">edit</button></td>
+                                </tr>`
+
+                    }
+                }
+            })
+                .catch((err) => { console.log(err) })
+        }
+    }
+    var index;
+    var obj;
+    function edit(i) {
+        document.getElementById('updtsbmt').style.display = 'block'
+        document.getElementById('btnsbmt').style.display = 'none'
+        console.log(val[i])
+        obj = val[i]
+        index = i
+        document.getElementById('first_name').value = val[i].firstname
+        document.getElementById('last_name').value = val[i].lastname
+        console.log(index)
+    }
+
+    function del(i) {
+        console.log(val[i]._id)
+        fetch(`http://localhost:8080/delete?index=${i}&id=${val[i].firstname}`).then((res) => {
+            console.log(res)
+            return res.json()
+
+        }).then((jsonData) => {
+            getdata()
+        })
+    }
+
+    function update() {
+        event.preventDefault()
+        var firstname = document.getElementById('first_name').value
+        var lastname = document.getElementById('last_name').value
+        console.log(firstname, lastname)
+
+        fetch(`http://localhost:8080/edit?oldfname=${obj.firstname}&oldlname=${obj.lastname}&firstname=${firstname}&lastname=${lastname}&index=${index}`).then((res) => {
+            console.log(res)
+            return res.json()
+
+        }).then((jsonData) => {
+            getdata(jsonData, 'getData')
+            document.getElementById('first_name').value = ""
+            document.getElementById('last_name').value = ""
+            document.getElementById('btnsbmt').style.display = 'block'
+            document.getElementById('updtsbmt').style.display = 'none'
+
+        })
+    }
+    // function getval(event) {
+    //     console.log(document.getElementById("filter").value)
+    //     // getdata(event.target.value)
+    var filter = document.getElementById("filter")
+    filter.addEventListener('keyup', function () {
+        getdata(this.value)
+    })
+    // }
+</script>
+
+</html>
